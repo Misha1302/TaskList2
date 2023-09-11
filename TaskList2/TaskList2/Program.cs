@@ -1,6 +1,6 @@
 using Npgsql;
 
-var conn = new NpgsqlConnection("Host=localhost;Port=5432;Database=testDb;Username=postgres;Password=qwerty");
+var conn = new NpgsqlConnection("Host=localhost;Port=5432;Database=testDb;Username=postgres;Password=Qwary123");
 
 conn.Open();
 
