@@ -2,7 +2,6 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -77,9 +76,11 @@ public class MainController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
-    public IResult Data()
+    public IResult Data(string token)
     {
+        if (new JwtSecurityTokenHandler().ReadJwtToken(token) == default)
+            return Results.Unauthorized();
+
         var data = new { data = "Hi!" };
         return Results.Json(data);
     }
