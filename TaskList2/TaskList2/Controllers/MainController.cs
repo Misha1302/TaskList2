@@ -10,19 +10,20 @@ using Microsoft.IdentityModel.Tokens;
 [Route("[controller]/[action]")]
 public class MainController : ControllerBase
 {
-    private static readonly List<Person> _people = new()
+    private readonly IPersonRepository _personRepository;
+
+    public MainController(IPersonRepository personRepository)
     {
-        new Person("tom@gmail.com", "12345"),
-        new Person("bob@gmail.com", "55555")
-    };
+        _personRepository = personRepository;
+    }
 
     [HttpPost]
     public IResult Login(Person p)
     {
         // находим пользователя 
-        var person = _people.FirstOrDefault(x => x.Email == p.Email && x.Password == p.Password);
-        // если пользователь не найден, отправляем статусный код 401
-        if (person is null) return Results.Unauthorized();
+        var person = _personRepository.Get(p.Id);
+        if (person?.Password != p.Password)
+            return Results.Unauthorized();
 
         var claims = new List<Claim> { new(ClaimTypes.Name, person.Email) };
         // создаем JWT-токен
@@ -39,7 +40,7 @@ public class MainController : ControllerBase
         var response = new
         {
             access_token = encodedJwt,
-            username = person.Email
+            user_id = person.Id
         };
 
         return Results.Json(response);
@@ -49,7 +50,7 @@ public class MainController : ControllerBase
     public IResult Authorize(Person p)
     {
         // находим пользователя 
-        var person = _people.FirstOrDefault(x => p.Email == x.Email);
+        var person = _personRepository.Get(p.Id);
         // если пользователь не найден, отправляем статусный код 401
         if (person is not null) return Results.Problem();
 
@@ -63,13 +64,13 @@ public class MainController : ControllerBase
             signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(),
                 SecurityAlgorithms.HmacSha256));
         var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-        _people.Add(p);
+        _personRepository.Create(p);
 
         // формируем ответ
         var response = new
         {
             access_token = encodedJwt,
-            username = p.Email
+            user_id = p.Name
         };
 
         return Results.Json(response);

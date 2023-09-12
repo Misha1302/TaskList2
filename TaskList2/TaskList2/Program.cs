@@ -1,32 +1,4 @@
-using Npgsql;
-
-var conn = new NpgsqlConnection("Host=localhost;Port=5432;Database=testDb;Username=postgres;Password=Qwary123");
-
-conn.Open();
-
-// Passing PostGre SQL Function Name
-var command = new NpgsqlCommand("EXE GetEmployeePrintInfo", conn);
-
-// Execute the query and obtain a result set
-var reader = command.ExecuteReader();
-
-// Reading from the database rows
-var listOfManager = new List<string>();
-
-while (reader.Read())
-{
-    var wsManager =
-        reader["WSManager"].ToString() ??
-        throw new InvalidOperationException(); // Remember Type Casting is required here it has to be according to database column data type
-    listOfManager.Add(wsManager);
-}
-
-reader.Close();
-
-command.Dispose();
-conn.Close();
-
-return;
+using TaskList2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +8,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IPersonRepository>(
+    new PersonRepository("Host=localhost;Port=5432;Database=testDb;username=postgres;Password=Qwary123")
+);
 
 var app = builder.Build();
 
